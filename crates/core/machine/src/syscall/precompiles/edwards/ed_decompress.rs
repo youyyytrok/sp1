@@ -72,7 +72,7 @@ impl<F: PrimeField32> EdDecompressCols<F> {
         self.clk = F::from_canonical_u32(event.clk);
         self.ptr = F::from_canonical_u32(event.ptr);
         self.nonce = F::from_canonical_u32(
-            record.nonce_lookup.get(&event.lookup_id).copied().unwrap_or_default(),
+            record.nonce_lookup.get(event.lookup_id.0 as usize).copied().unwrap_or_default(),
         );
         self.sign = F::from_bool(event.sign);
         for i in 0..8 {
@@ -298,8 +298,9 @@ where
 pub mod tests {
     use sp1_core_executor::Program;
     use sp1_stark::CpuProver;
+    use test_artifacts::ED_DECOMPRESS_ELF;
 
-    use crate::utils::{self, tests::ED_DECOMPRESS_ELF};
+    use crate::utils;
 
     #[test]
     fn test_ed_decompress() {

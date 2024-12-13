@@ -1,3 +1,5 @@
+# Note: this is only compatible with Linux runners.
+
 name: Test setup
 inputs:
   pull_token:
@@ -75,6 +77,8 @@ runs:
           ~/.cargo/git/db/
           target/
           ~/.rustup/
+          ~/.sp1/circuits/plonk/
+          ~/.sp1/circuits/groth16/
         key: rust-1.81.0-${{ hashFiles('**/Cargo.toml') }}
         restore-keys: rust-1.81.0-
 

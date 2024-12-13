@@ -358,10 +358,18 @@ where
             .map(|(name, domain, _)| {
                 let i = chip_ordering[name];
                 let values = opened_values.chips[i].preprocessed.clone();
-                TwoAdicPcsMatsVariable::<C> {
-                    domain: *domain,
-                    points: vec![zeta, domain.next_point_variable(builder, zeta)],
-                    values: vec![values.local, values.next],
+                if !chips[i].local_only() {
+                    TwoAdicPcsMatsVariable::<C> {
+                        domain: *domain,
+                        points: vec![zeta, domain.next_point_variable(builder, zeta)],
+                        values: vec![values.local, values.next],
+                    }
+                } else {
+                    TwoAdicPcsMatsVariable::<C> {
+                        domain: *domain,
+                        points: vec![zeta],
+                        values: vec![values.local],
+                    }
                 }
             })
             .collect::<Vec<_>>();
@@ -369,10 +377,21 @@ where
         let main_domains_points_and_opens = trace_domains
             .iter()
             .zip_eq(opened_values.chips.iter())
-            .map(|(domain, values)| TwoAdicPcsMatsVariable::<C> {
-                domain: *domain,
-                points: vec![zeta, domain.next_point_variable(builder, zeta)],
-                values: vec![values.main.local.clone(), values.main.next.clone()],
+            .zip_eq(chips.iter())
+            .map(|((domain, values), chip)| {
+                if !chip.local_only() {
+                    TwoAdicPcsMatsVariable::<C> {
+                        domain: *domain,
+                        points: vec![zeta, domain.next_point_variable(builder, zeta)],
+                        values: vec![values.main.local.clone(), values.main.next.clone()],
+                    }
+                } else {
+                    TwoAdicPcsMatsVariable::<C> {
+                        domain: *domain,
+                        points: vec![zeta],
+                        values: vec![values.main.local.clone()],
+                    }
+                }
             })
             .collect::<Vec<_>>();
 
@@ -534,7 +553,7 @@ pub mod tests {
         BabyBearFriConfig,
     };
 
-    use sp1_core_executor::{programs::tests::FIBONACCI_ELF, Program};
+    use sp1_core_executor::Program;
     use sp1_core_machine::{
         io::SP1Stdin,
         riscv::RiscvAir,
@@ -550,6 +569,7 @@ pub mod tests {
         baby_bear_poseidon2::BabyBearPoseidon2, CpuProver, InnerVal, MachineProver, SP1CoreOpts,
         ShardProof,
     };
+    use test_artifacts::FIBONACCI_ELF;
 
     use super::*;
     use crate::witness::*;
